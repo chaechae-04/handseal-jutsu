@@ -8,6 +8,12 @@ let holdTime = 0;
 const HOLD_THRESHOLD = 2000; // 2초 유지
 
 let classifier;
+let lastTime = performance.now();
+
+// label 안정화
+let lastLabel = '';
+let stableFrames = 0;
+const REQUIRED_FRAMES = 5; // 5프레임 연속 같아야 인정
 
 // 모델 로드
 ml5.imageClassifier('models/model.json')
@@ -19,42 +25,66 @@ ml5.imageClassifier('models/model.json')
   .catch(err => {
     console.error(err);
     statusEl.innerText = "모델 로드 실패, 더미 테스트로 전환";
-    dummyClassify();
+    startWebcam(true); // dummy mode
   });
 
 // 웹캠 시작
-function startWebcam(){
+function startWebcam(dummy=false){
   navigator.mediaDevices.getUserMedia({ video: true })
     .then(stream => {
       video.srcObject = stream;
       video.play();
-      predictLoop();
+      if(dummy) dummyClassify();
+      else predictLoop();
+    })
+    .catch(err => {
+      console.error("웹캠 접근 실패:", err);
+      statusEl.innerText = "웹캠 접근 실패: 권한 확인 필요";
     });
 }
 
 // 예측 루프
 function predictLoop(){
   if(!classifier) return;
-  classifier.classify(video).then(results => {
-    const label = results[0].label;
-    checkPrediction(label, 100);
-    requestAnimationFrame(predictLoop);
-  }).catch(() => {
-    // 예외 시 더미 테스트
-    dummyClassify();
-  });
+
+  const now = performance.now();
+  const deltaTime = now - lastTime;
+  lastTime = now;
+
+  classifier.classify(video)
+    .then(results => {
+      const label = results[0].label;
+      checkPrediction(label, deltaTime);
+      requestAnimationFrame(predictLoop);
+    })
+    .catch(() => dummyClassify());
 }
 
-// 더미 분류 함수 (모델 없을 때)
+// 더미 분류 함수
 function dummyClassify(){
   const labels = ['뱀','염소','원숭이','돼지','말','호랑이'];
   const randomLabel = labels[Math.floor(Math.random()*labels.length)];
-  checkPrediction(randomLabel, 100);
+
+  const now = performance.now();
+  const deltaTime = now - lastTime;
+  lastTime = now;
+
+  checkPrediction(randomLabel, deltaTime);
   requestAnimationFrame(dummyClassify);
 }
 
 // 시퀀스 체크
 function checkPrediction(predictedLabel, deltaTime){
+  // label 안정화
+  if(predictedLabel === lastLabel){
+    stableFrames++;
+  } else {
+    stableFrames = 1;
+    lastLabel = predictedLabel;
+  }
+
+  if(stableFrames < REQUIRED_FRAMES) return;
+
   currentIn.innerText = `현재 인: ${predictedLabel}`;
 
   if(predictedLabel === sequence[step]){
@@ -90,16 +120,19 @@ function checkPrediction(predictedLabel, deltaTime){
 function showFireball(){
   const canvas = document.getElementById('fireCanvas');
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  canvas.width = video.videoWidth || 480;
+  canvas.height = video.videoHeight || 360;
 
+  ctx.clearRect(0,0,canvas.width,canvas.height);
   let radius = 10;
+
   const anim = setInterval(() => {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.fillStyle = 'orange';
     ctx.beginPath();
-    ctx.arc(240,180,radius,0,Math.PI*2);
+    ctx.arc(canvas.width/2, canvas.height/2, radius, 0, Math.PI*2);
     ctx.fill();
-    radius += 5;
-    if(radius > 100) clearInterval(anim);
+    radius += 8;
+    if(radius > Math.max(canvas.width, canvas.height)) clearInterval(anim);
   }, 50);
 }
