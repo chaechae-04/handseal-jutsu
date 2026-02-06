@@ -75,7 +75,7 @@ function predictLoop(){
 
 // 시퀀스 체크
 function checkPrediction(predictedLabel, deltaTime){
-  // label 안정화
+  // label 안정화 (UI 표시용)
   if(predictedLabel === lastLabel){
     stableFrames++;
   } else {
@@ -83,10 +83,12 @@ function checkPrediction(predictedLabel, deltaTime){
     lastLabel = predictedLabel;
   }
 
-  if(stableFrames < REQUIRED_FRAMES) return;
+  // 안정화된 label만 UI에 표시
+  if(stableFrames >= REQUIRED_FRAMES){
+    currentIn.innerText = `현재 인: ${predictedLabel}`;
+  }
 
-  currentIn.innerText = `현재 인: ${predictedLabel}`;
-
+  // holdTime 증가 (실제 완료 체크)
   if(predictedLabel === sequence[step]){
     holdTime += deltaTime;
     statusEl.innerText = '상태: 유지 중...';
@@ -115,6 +117,7 @@ function checkPrediction(predictedLabel, deltaTime){
     holdTime = 0;
   }
 }
+
 
 // 불덩어리 애니메이션
 function showFireball(){
