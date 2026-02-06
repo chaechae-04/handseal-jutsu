@@ -74,6 +74,9 @@ function predictLoop(){
 }
 
 // 시퀀스 체크
+let successTimer = 0;
+const SUCCESS_DISPLAY = 800; // 0.8초 동안 성공 상태 유지
+
 function checkPrediction(predictedLabel, deltaTime){
   // label 안정화 (UI 표시용)
   if(predictedLabel === lastLabel){
@@ -83,38 +86,50 @@ function checkPrediction(predictedLabel, deltaTime){
     lastLabel = predictedLabel;
   }
 
-  // 안정화된 label만 UI에 표시
   if(stableFrames >= REQUIRED_FRAMES){
     currentIn.innerText = `현재 인: ${predictedLabel}`;
   }
 
-  // holdTime 증가 (실제 완료 체크)
-  if(predictedLabel === sequence[step]){
-    holdTime += deltaTime;
-    statusEl.innerText = '상태: 유지 중...';
-    statusEl.className = '';
-
-    if(holdTime >= HOLD_THRESHOLD){
-      step++;
-      holdTime = 0;
-      statusEl.innerText = '상태: ✅ 성공!';
-      statusEl.className = 'success';
-
-      if(step === sequence.length){
-        statusEl.innerText = '🔥 화둔 호화구의 술 발동! 🔥';
-        showFireball();
-        step = 0;
-      }
-    }
-  } else {
-    if(holdTime > 0){
-      statusEl.innerText = '상태: ❌ 실패';
-      statusEl.className = 'fail';
-    } else {
+  // 성공 표시 유지
+  if(successTimer > 0){
+    successTimer -= deltaTime;
+    if(successTimer <= 0){
       statusEl.innerText = '상태: 대기 중';
       statusEl.className = '';
     }
+    return; // 성공 유지 중에는 holdTime 증가/초기화 무시
+  }
+
+  // holdTime 누적
+  if(predictedLabel === sequence[step]){
+    holdTime += deltaTime;
+    wrongFrames = 0;
+    statusEl.innerText = '상태: 유지 중...';
+    statusEl.className = '';
+  } else {
+    wrongFrames++;
+    if(wrongFrames >= MAX_WRONG_FRAMES){
+      holdTime = 0;
+      statusEl.innerText = '상태: 대기 중';
+      statusEl.className = '';
+      wrongFrames = 0;
+    }
+  }
+
+  // 완료 체크
+  if(holdTime >= HOLD_THRESHOLD){
+    step++;
     holdTime = 0;
+    statusEl.innerText = '상태: ✅ 성공!';
+    statusEl.className = 'success';
+    successTimer = SUCCESS_DISPLAY; // 성공 표시 잠시 유지
+
+    if(step === sequence.length){
+      statusEl.innerText = '🔥 화둔 호화구의 술 발동! 🔥';
+      showFireball();
+      step = 0;
+      successTimer = SUCCESS_DISPLAY;
+    }
   }
 }
 
