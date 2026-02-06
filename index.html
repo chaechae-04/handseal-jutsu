@@ -6,10 +6,19 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <video id="webcam" width="320" height="240" autoplay></video>
-  <canvas id="fireCanvas" width="320" height="240"></canvas>
-  
-  <p id="status">모델 로딩 중...</p>
+  <div class="container">
+    <h1>🔥 화둔 호화구의 술 MVP 🔥</h1>
+    
+    <div class="video-container">
+      <video id="webcam" autoplay playsinline></video>
+      <canvas id="fireCanvas"></canvas>
+    </div>
+
+    <div class="ui-panel">
+      <p id="current-in">현재 인: -</p>
+      <p id="status">상태: 대기 중</p>
+    </div>
+  </div>
 
   <!-- ML5.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ml5/0.12.2/ml5.min.js"></script>

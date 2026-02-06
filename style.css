@@ -1,3 +1,55 @@
-body { text-align: center; font-family: sans-serif; }
-video, canvas { margin: 10px; border: 2px solid #333; }
-#status { font-weight: bold; font-size: 1.2em; }
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to bottom, #1b1b1b, #2c2c2c);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  text-align: center;
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 2em;
+  color: #ff5722;
+  text-shadow: 2px 2px 5px #000;
+}
+
+.video-container {
+  position: relative;
+  display: inline-block;
+}
+
+video, canvas {
+  width: 480px;
+  height: 360px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px #ff5722;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.ui-panel {
+  margin-top: 20px;
+  background: rgba(0,0,0,0.5);
+  padding: 15px 25px;
+  border-radius: 10px;
+}
+
+#current-in, #status {
+  font-size: 1.2em;
+  margin: 5px 0;
+}
+
+#status.success { color: #00e676; }
+#status.fail { color: #ff3d00; }
