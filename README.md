@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🥷 HandSeal Jutsu
+웹캠 기반 손 모션 인식으로 나루토 인술(인 결)을 수행하는 인터랙티브 웹 프로젝트
 
-## Getting Started
+## 🎯 목표
+- 웹캠으로 손 모양을 실시간 인식
+- 나루토 인술의 '인'을 정확히 수행하면 분류
+- MVP: **화둔 · 호화구의 술** 인식 성공
 
-First, run the development server:
+---
 
+## 🔥 MVP 기능
+- MediaPipe Hands 기반 손 관절 인식
+- 인(손 모양) 룰 기반 판별
+- 인술 순서(State Machine) 처리
+- 성공 / 실패 이벤트 처리
+- 현재 인 가이드 이미지 + 사용자 인식 결과 표시
+
+---
+
+## 🛠 Tech Stack
+- Next.js (App Router)
+- TypeScript
+- MediaPipe Hands
+- Canvas API
+- Tailwind CSS
+
+---
+
+## 🗓 개발 일정 (3 Days Sprint)
+
+### Day 1 – 프로젝트 세팅 & 손 인식
+- [ ] Next.js 프로젝트 생성
+- [ ] GitHub 레포 연결
+- [ ] 웹캠 스트림 연결
+- [ ] MediaPipe Hands 세팅
+- [ ] 손 관절 21개 시각화
+
+### Day 2 – 인 판별 & 상태 머신
+- [ ] 인(손 모양) 타입 정의
+- [ ] 손가락 펴짐/접힘 판별 유틸
+- [ ] 인 판별 로직 구현
+- [ ] 인술 상태 머신 구현
+- [ ] 실패 시 초기화 처리
+
+### Day 3 – 화둔 완성 & UX
+- [ ] 화둔: 호화구의 술 인 정의
+- [ ] 인 순서 연결
+- [ ] 성공 / 실패 문구 이벤트
+- [ ] 가이드 인 이미지 표시
+- [ ] 전체 흐름 정리 및 리팩토링
+
+---
+
+## 🖥 실행 방법
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
