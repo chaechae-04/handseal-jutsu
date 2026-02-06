@@ -1,29 +1,32 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8">
-  <title>나루토 인술</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="container">
-    <h1>나루토 인술</h1>
 
-    <div class="video-container">
-      <video id="webcam" autoplay playsinline muted></video>
-      <canvas id="fireCanvas"></canvas>
+<head>
+    <meta charset="UTF-8">
+    <title>나루토 인술</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>나루토 인술</h1>
+
+        <div class="video-container">
+            <video id="webcam" autoplay playsinline muted></video>
+            <canvas id="fireCanvas"></canvas>
+        </div>
+
+        <div class="ui-panel">
+            <p id="current-in">현재 인: -</p>
+            <p id="status">상태: 대기 중</p>
+            <p id="stack-display">스택: []</p>
+            <button id="reset-stack">스택 초기화</button>
+        </div>
     </div>
 
-    <div class="ui-panel">
-  <p id="current-in">현재 인: -</p>
-  <p id="status">상태: 대기 중</p>
-  <p id="stack-display">스택: []</p>
-  <button id="reset-stack">스택 초기화</button>
-</div>
-  </div>
-
-  <!-- ML5.js -->
-  <script src="https://cdn.jsdelivr.net/npm/ml5@0.12.2/dist/ml5.min.js"></script>
-  <script src="main.js"></script>
+    <!-- ML5.js -->
+    <script src="https://cdn.jsdelivr.net/npm/ml5@0.12.2/dist/ml5.min.js"></script>
+    <script src="main.js"></script>
 </body>
+
 </html>

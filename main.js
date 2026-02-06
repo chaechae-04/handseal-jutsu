@@ -20,18 +20,18 @@ let step = 0;
 let holdTime = 0;
 const HOLD_THRESHOLD = 2000;
 let wrongFrames = 0;
-const MAX_WRONG_FRAMES = 5;
+const MAX_WRONG_FRAMES = 10; // 조금 느슨하게
 
 let classifier;
 let lastTime = performance.now();
 
-// label 안정화
+// label 안정화 (UI용)
 let lastLabel = '';
 let stableFrames = 0;
 const REQUIRED_FRAMES = 5;
 const CONFIDENCE_THRESHOLD = 0.6;
 
-// 성공 표시 안정화
+// 성공 표시 유지
 let successTimer = 0;
 const SUCCESS_DISPLAY = 800;
 
@@ -85,7 +85,7 @@ function predictLoop(){
 
   classifier.classify(video)
     .then(results => {
-      const label = results[0].label.toLowerCase(); // 소문자로 통일
+      const label = results[0].label.toLowerCase();
       const confidence = results[0].confidence;
 
       if(confidence < CONFIDENCE_THRESHOLD){
@@ -120,7 +120,7 @@ function handlePrediction(predictedLabel, deltaTime){
     currentIn.innerText = `현재 인: ${predictedLabel}`;
   }
 
-  // 성공 표시 유지 중이면 holdTime/초기화 무시
+  // 성공 표시 유지 중이면 holdTime 증가/초기화 무시
   if(successTimer > 0){
     successTimer -= deltaTime;
     if(successTimer <= 0){
@@ -139,7 +139,8 @@ function handlePrediction(predictedLabel, deltaTime){
   } else {
     wrongFrames++;
     if(wrongFrames >= MAX_WRONG_FRAMES){
-      holdTime = 0;
+      // holdTime 초기화, 하지만 너무 민감하게 초기화하지 않음
+      holdTime = Math.max(holdTime - deltaTime, 0);
       statusEl.innerText = '상태: 대기 중';
       statusEl.className = '';
       wrongFrames = 0;
@@ -160,12 +161,11 @@ function completeIn(inName, displayName){
   statusEl.innerText = '상태: ✅ 성공!';
   statusEl.className = 'success';
 
-  // 스택에 한글/한자 표시
   inStack.push(displayName);
   updateStackDisplay();
 
-  // 발동 이벤트 예시
-  if(displayName === '화둔호화구' || displayName === '용'){
+  // 발동 이벤트
+  if(displayName === '용' || displayName === '호랑이'){
     statusEl.innerText = '🔥 ' + displayName + ' 발동! 🔥';
     showFireball();
   } else {
