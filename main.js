@@ -1,13 +1,15 @@
 let video = document.getElementById('webcam');
 let currentIn = document.getElementById('current-in');
 let statusEl = document.getElementById('status');
+const stackDisplay = document.getElementById('stack-display');
+const resetBtn = document.getElementById('reset-stack');
 
 const sequence = ['뱀','염소','원숭이','돼지','말','호랑이'];
 let step = 0;
 let holdTime = 0;
-let wrongFrames = 0;
 const HOLD_THRESHOLD = 2000; // 2초 유지
-const MAX_WRONG_FRAMES = 5;
+let wrongFrames = 0;
+const MAX_WRONG_FRAMES = 5; // 연속 틀리면 holdTime 초기화
 
 let classifier;
 let lastTime = performance.now();
@@ -16,8 +18,25 @@ let lastTime = performance.now();
 let lastLabel = '';
 let stableFrames = 0;
 const REQUIRED_FRAMES = 5; // 5프레임 연속 같아야 인정
-
 const CONFIDENCE_THRESHOLD = 0.6; // 신뢰도 기준
+
+// 성공 표시 안정화
+let successTimer = 0;
+const SUCCESS_DISPLAY = 800; // 0.8초
+
+// 인술 스택
+let inStack = [];
+
+// 리셋 버튼
+resetBtn.addEventListener('click', () => {
+  inStack = [];
+  updateStackDisplay();
+});
+
+// 스택 UI 갱신
+function updateStackDisplay(){
+  stackDisplay.innerText = `스택: [${inStack.join(', ')}]`;
+}
 
 // 모델 로드
 ml5.imageClassifier('models/model.json')
@@ -63,6 +82,7 @@ function predictLoop(){
         statusEl.innerText = "상태: 대기 중";
         statusEl.className = '';
         holdTime = 0;
+        wrongFrames = 0;
       } else {
         checkPrediction(label, deltaTime);
       }
@@ -75,10 +95,7 @@ function predictLoop(){
     });
 }
 
-// 시퀀스 체크
-let successTimer = 0;
-const SUCCESS_DISPLAY = 800; // 0.8초 동안 성공 상태 유지
-
+// 시퀀스 체크 + 스택 처리
 function checkPrediction(predictedLabel, deltaTime){
   // label 안정화 (UI 표시용)
   if(predictedLabel === lastLabel){
@@ -92,14 +109,14 @@ function checkPrediction(predictedLabel, deltaTime){
     currentIn.innerText = `현재 인: ${predictedLabel}`;
   }
 
-  // 성공 표시 유지
+  // 성공 표시 유지 중이면 holdTime/초기화 무시
   if(successTimer > 0){
     successTimer -= deltaTime;
     if(successTimer <= 0){
       statusEl.innerText = '상태: 대기 중';
       statusEl.className = '';
     }
-    return; // 성공 유지 중에는 holdTime 증가/초기화 무시
+    return;
   }
 
   // holdTime 누적
@@ -124,17 +141,23 @@ function checkPrediction(predictedLabel, deltaTime){
     holdTime = 0;
     statusEl.innerText = '상태: ✅ 성공!';
     statusEl.className = 'success';
-    successTimer = SUCCESS_DISPLAY; // 성공 표시 잠시 유지
+    successTimer = SUCCESS_DISPLAY;
 
+    // 스택에 추가
+    inStack.push(sequence[step - 1]);
+    updateStackDisplay();
+
+    // 마지막 스택 발동
     if(step === sequence.length){
       statusEl.innerText = '🔥 화둔 호화구의 술 발동! 🔥';
       showFireball();
       step = 0;
       successTimer = SUCCESS_DISPLAY;
+      inStack = []; // 발동 후 스택 초기화
+      updateStackDisplay();
     }
   }
 }
-
 
 // 불덩어리 애니메이션
 function showFireball(){

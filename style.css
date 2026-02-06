@@ -52,5 +52,22 @@ canvas {
   font-size: 1.2em;
 }
 
+button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #ff6e40;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 10px #ff6e40;
+}
+
+button:hover {
+  background: #ff3d00;
+}
+
+
 #status.success { color: #00e676; }
 #status.fail { color: #ff3d00; }
