@@ -5,7 +5,9 @@ let statusEl = document.getElementById('status');
 const sequence = ['뱀','염소','원숭이','돼지','말','호랑이'];
 let step = 0;
 let holdTime = 0;
+let wrongFrames = 0;
 const HOLD_THRESHOLD = 2000; // 2초 유지
+const MAX_WRONG_FRAMES = 5;
 
 let classifier;
 let lastTime = performance.now();
