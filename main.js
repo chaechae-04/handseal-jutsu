@@ -4,12 +4,23 @@ let statusEl = document.getElementById('status');
 const stackDisplay = document.getElementById('stack-display');
 const resetBtn = document.getElementById('reset-stack');
 
-const sequence = ['뱀','염소','원숭이','돼지','말','호랑이'];
+// 모델 인식용 영어 이름
+const sequence = [
+  'rabbit','goat','monkey','pig','horse','dog',
+  'cow','snake','chicken','mouse','dragon','tiger'
+];
+
+// 스택에 표시할 한글/한자 이름
+const sequenceDisplay = [
+  '토끼','염소','원숭이','돼지','말','개',
+  '소','뱀','닭','쥐','용','호랑이'
+];
+
 let step = 0;
 let holdTime = 0;
-const HOLD_THRESHOLD = 2000; // 2초 유지
+const HOLD_THRESHOLD = 2000;
 let wrongFrames = 0;
-const MAX_WRONG_FRAMES = 5; // 연속 틀리면 holdTime 초기화
+const MAX_WRONG_FRAMES = 5;
 
 let classifier;
 let lastTime = performance.now();
@@ -17,12 +28,12 @@ let lastTime = performance.now();
 // label 안정화
 let lastLabel = '';
 let stableFrames = 0;
-const REQUIRED_FRAMES = 5; // 5프레임 연속 같아야 인정
-const CONFIDENCE_THRESHOLD = 0.6; // 신뢰도 기준
+const REQUIRED_FRAMES = 5;
+const CONFIDENCE_THRESHOLD = 0.6;
 
 // 성공 표시 안정화
 let successTimer = 0;
-const SUCCESS_DISPLAY = 800; // 0.8초
+const SUCCESS_DISPLAY = 800;
 
 // 인술 스택
 let inStack = [];
@@ -74,7 +85,7 @@ function predictLoop(){
 
   classifier.classify(video)
     .then(results => {
-      const label = results[0].label;
+      const label = results[0].label.toLowerCase(); // 소문자로 통일
       const confidence = results[0].confidence;
 
       if(confidence < CONFIDENCE_THRESHOLD){
@@ -84,7 +95,7 @@ function predictLoop(){
         holdTime = 0;
         wrongFrames = 0;
       } else {
-        checkPrediction(label, deltaTime);
+        handlePrediction(label, deltaTime);
       }
 
       requestAnimationFrame(predictLoop);
@@ -95,9 +106,9 @@ function predictLoop(){
     });
 }
 
-// 시퀀스 체크 + 스택 처리
-function checkPrediction(predictedLabel, deltaTime){
-  // label 안정화 (UI 표시용)
+// 인술 판단 및 완료 처리
+function handlePrediction(predictedLabel, deltaTime){
+  // label 안정화 (UI용)
   if(predictedLabel === lastLabel){
     stableFrames++;
   } else {
@@ -137,26 +148,35 @@ function checkPrediction(predictedLabel, deltaTime){
 
   // 완료 체크
   if(holdTime >= HOLD_THRESHOLD){
-    step++;
+    completeIn(sequence[step], sequenceDisplay[step]);
+    step = (step + 1) % sequence.length;
     holdTime = 0;
-    statusEl.innerText = '상태: ✅ 성공!';
-    statusEl.className = 'success';
     successTimer = SUCCESS_DISPLAY;
-
-    // 스택에 추가
-    inStack.push(sequence[step - 1]);
-    updateStackDisplay();
-
-    // 마지막 스택 발동
-    if(step === sequence.length){
-      statusEl.innerText = '🔥 화둔 호화구의 술 발동! 🔥';
-      showFireball();
-      step = 0;
-      successTimer = SUCCESS_DISPLAY;
-      inStack = []; // 발동 후 스택 초기화
-      updateStackDisplay();
-    }
   }
+}
+
+// 완료된 인술 처리 + 스택 쌓기 + 발동
+function completeIn(inName, displayName){
+  statusEl.innerText = '상태: ✅ 성공!';
+  statusEl.className = 'success';
+
+  // 스택에 한글/한자 표시
+  inStack.push(displayName);
+  updateStackDisplay();
+
+  // 발동 이벤트 예시
+  if(displayName === '화둔호화구' || displayName === '용'){
+    statusEl.innerText = '🔥 ' + displayName + ' 발동! 🔥';
+    showFireball();
+  } else {
+    statusEl.innerText = `✨ ${displayName} 발동! ✨`;
+  }
+
+  // 2초 뒤 상태 초기화
+  setTimeout(() => {
+    statusEl.innerText = '상태: 대기 중';
+    statusEl.className = '';
+  }, 2000);
 }
 
 // 불덩어리 애니메이션
