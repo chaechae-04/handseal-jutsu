@@ -20,23 +20,23 @@ let step = 0;
 let holdTime = 0;
 const HOLD_THRESHOLD = 2000;
 let wrongFrames = 0;
-const MAX_WRONG_FRAMES = 10; // 조금 느슨하게
+const MAX_WRONG_FRAMES = 10;
 
 let classifier;
 let lastTime = performance.now();
-
-// label 안정화 (UI용)
 let lastLabel = '';
 let stableFrames = 0;
 const REQUIRED_FRAMES = 5;
 const CONFIDENCE_THRESHOLD = 0.6;
 
-// 성공 표시 유지
 let successTimer = 0;
 const SUCCESS_DISPLAY = 800;
 
 // 인술 스택
 let inStack = [];
+
+// 화둔호화구 조건 (마지막 7개)
+const fireballSequence = ['뱀','염소','원숭이','돼지','말','호랑이'];
 
 // 리셋 버튼
 resetBtn.addEventListener('click', () => {
@@ -49,127 +49,26 @@ function updateStackDisplay(){
   stackDisplay.innerText = `스택: [${inStack.join(', ')}]`;
 }
 
-// 모델 로드
-ml5.imageClassifier('models/model.json')
-  .then(c => {
-    classifier = c;
-    statusEl.innerText = "모델 로딩 완료. 웹캠 시작 중...";
-    startWebcam();
-  })
-  .catch(err => {
-    console.error(err);
-    statusEl.innerText = "모델 로드 실패: 모델 파일 확인 필요";
-  });
-
-// 웹캠 시작
-function startWebcam(){
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-      video.srcObject = stream;
-      video.play();
-      predictLoop();
-    })
-    .catch(err => {
-      console.error("웹캠 접근 실패:", err);
-      statusEl.innerText = "웹캠 접근 실패: 권한 확인 필요";
-    });
-}
-
-// 예측 루프
-function predictLoop(){
-  if(!classifier) return;
-
-  const now = performance.now();
-  const deltaTime = now - lastTime;
-  lastTime = now;
-
-  classifier.classify(video)
-    .then(results => {
-      const label = results[0].label.toLowerCase();
-      const confidence = results[0].confidence;
-
-      if(confidence < CONFIDENCE_THRESHOLD){
-        currentIn.innerText = "현재 인: ❌ 인식 실패";
-        statusEl.innerText = "상태: 대기 중";
-        statusEl.className = '';
-        holdTime = 0;
-        wrongFrames = 0;
-      } else {
-        handlePrediction(label, deltaTime);
-      }
-
-      requestAnimationFrame(predictLoop);
-    })
-    .catch(err => {
-      console.error(err);
-      statusEl.innerText = "모델 예측 오류 발생";
-    });
-}
-
-// 인술 판단 및 완료 처리
-function handlePrediction(predictedLabel, deltaTime){
-  // label 안정화 (UI용)
-  if(predictedLabel === lastLabel){
-    stableFrames++;
-  } else {
-    stableFrames = 1;
-    lastLabel = predictedLabel;
-  }
-
-  if(stableFrames >= REQUIRED_FRAMES){
-    currentIn.innerText = `현재 인: ${predictedLabel}`;
-  }
-
-  // 성공 표시 유지 중이면 holdTime 증가/초기화 무시
-  if(successTimer > 0){
-    successTimer -= deltaTime;
-    if(successTimer <= 0){
-      statusEl.innerText = '상태: 대기 중';
-      statusEl.className = '';
-    }
-    return;
-  }
-
-  // holdTime 누적
-  if(predictedLabel === sequence[step]){
-    holdTime += deltaTime;
-    wrongFrames = 0;
-    statusEl.innerText = '상태: 유지 중...';
-    statusEl.className = '';
-  } else {
-    wrongFrames++;
-    if(wrongFrames >= MAX_WRONG_FRAMES){
-      // holdTime 초기화, 하지만 너무 민감하게 초기화하지 않음
-      holdTime = Math.max(holdTime - deltaTime, 0);
-      statusEl.innerText = '상태: 대기 중';
-      statusEl.className = '';
-      wrongFrames = 0;
-    }
-  }
-
-  // 완료 체크
-  if(holdTime >= HOLD_THRESHOLD){
-    completeIn(sequence[step], sequenceDisplay[step]);
-    step = (step + 1) % sequence.length;
-    holdTime = 0;
-    successTimer = SUCCESS_DISPLAY;
-  }
-}
-
-// 완료된 인술 처리 + 스택 쌓기 + 발동
+// 완료된 인술 처리 + 스택 쌓기
 function completeIn(inName, displayName){
   statusEl.innerText = '상태: ✅ 성공!';
   statusEl.className = 'success';
 
+  // 스택에 넣기
   inStack.push(displayName);
   updateStackDisplay();
 
-  // 발동 이벤트
-  if(displayName === '용' || displayName === '호랑이'){
-    statusEl.innerText = '🔥 ' + displayName + ' 발동! 🔥';
-    showFireball();
-  } else {
-    statusEl.innerText = `✨ ${displayName} 발동! ✨`;
+  // 스택 마지막 7개 확인
+  if(inStack.length >= fireballSequence.length){
+    const last7 = inStack.slice(-fireballSequence.length);
+    if(last7.join(',') === fireballSequence.join(',')){
+      // 화둔 호화구 발동
+      statusEl.innerText = '🔥 화둔 호화구의 술 발동! 🔥';
+      showFireball();
+      // 발동 후 스택 초기화(원하면 일부만 지우고 이어갈 수도 있음)
+      // inStack = [];
+      // updateStackDisplay();
+    }
   }
 
   // 2초 뒤 상태 초기화
