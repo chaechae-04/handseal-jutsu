@@ -32,6 +32,11 @@ video, canvas {
   box-shadow: 0 0 20px #ff6e40;
 }
 
+video {
+  /* 좌우 반전 */
+  transform: scaleX(-1);
+}
+
 canvas {
   position: absolute;
   top: 0;

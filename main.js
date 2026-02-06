@@ -15,6 +15,8 @@ let lastLabel = '';
 let stableFrames = 0;
 const REQUIRED_FRAMES = 5; // 5프레임 연속 같아야 인정
 
+const CONFIDENCE_THRESHOLD = 0.6; // 신뢰도 기준
+
 // 모델 로드
 ml5.imageClassifier('models/model.json')
   .then(c => {
@@ -24,18 +26,16 @@ ml5.imageClassifier('models/model.json')
   })
   .catch(err => {
     console.error(err);
-    statusEl.innerText = "모델 로드 실패, 더미 테스트로 전환";
-    startWebcam(true); // dummy mode
+    statusEl.innerText = "모델 로드 실패: 모델 파일 확인 필요";
   });
 
 // 웹캠 시작
-function startWebcam(dummy=false){
+function startWebcam(){
   navigator.mediaDevices.getUserMedia({ video: true })
     .then(stream => {
       video.srcObject = stream;
       video.play();
-      if(dummy) dummyClassify();
-      else predictLoop();
+      predictLoop();
     })
     .catch(err => {
       console.error("웹캠 접근 실패:", err);
@@ -54,23 +54,23 @@ function predictLoop(){
   classifier.classify(video)
     .then(results => {
       const label = results[0].label;
-      checkPrediction(label, deltaTime);
+      const confidence = results[0].confidence;
+
+      if(confidence < CONFIDENCE_THRESHOLD){
+        currentIn.innerText = "현재 인: ❌ 인식 실패";
+        statusEl.innerText = "상태: 대기 중";
+        statusEl.className = '';
+        holdTime = 0;
+      } else {
+        checkPrediction(label, deltaTime);
+      }
+
       requestAnimationFrame(predictLoop);
     })
-    .catch(() => dummyClassify());
-}
-
-// 더미 분류 함수
-function dummyClassify(){
-  const labels = ['뱀','염소','원숭이','돼지','말','호랑이'];
-  const randomLabel = labels[Math.floor(Math.random()*labels.length)];
-
-  const now = performance.now();
-  const deltaTime = now - lastTime;
-  lastTime = now;
-
-  checkPrediction(randomLabel, deltaTime);
-  requestAnimationFrame(dummyClassify);
+    .catch(err => {
+      console.error(err);
+      statusEl.innerText = "모델 예측 오류 발생";
+    });
 }
 
 // 시퀀스 체크
