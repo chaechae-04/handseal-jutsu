@@ -15,7 +15,7 @@ const sequenceDisplay = [
 
 let step = 0;
 let holdTime = 0;
-const HOLD_THRESHOLD = 2000;
+const HOLD_THRESHOLD = 2000; // 2초
 
 let classifier;
 let lastTime = performance.now();
@@ -105,14 +105,15 @@ function handlePrediction(predictedLabel, deltaTime){
     lastLabel = predictedLabel;
   }
 
-  // 충분히 안정된 경우만 holdTime 증가
   if(stableFrames >= REQUIRED_FRAMES){
     currentIn.innerText = `현재 인: ${predictedLabel}`;
+
     if(predictedLabel === sequence[step]){
       holdTime += deltaTime;
       statusEl.innerText = '상태: 유지 중...';
       statusEl.className = '';
     } else {
+      holdTime = 0; // 다른 인술이면 holdTime 초기화
       statusEl.innerText = '상태: 대기 중';
       statusEl.className = '';
     }
